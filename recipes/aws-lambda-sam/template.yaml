@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Hugging Face MLOps API - AWS Lambda Deployment
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    Description: Environment name
+
+  HFToken:
+    Type: String
+    NoEcho: true
+    Description: Hugging Face API Token
+
+Resources:
+  HFMLOpsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: hf-mlops-api-${Environment}
+      MemorySize: 10240
+      Timeout: 300
+      PackageType: Image
+      ImageUri: hf-mlops-api:latest
+      ImageConfig:
+        Command:
+          - api.main:app
+      Environment:
+        Variables:
+          HF_TOKEN: !Ref HFToken
+          PYTHONUNBUFFERED: '1'
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        HttpApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HFMLOpsApi
+            Route: ANY /{proxy+}
+            Integration:
+              PayloadFormatVersion: '2.0'
+
+  HFMLOpsApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: hf-mlops-api-${Environment}
+      Stage: default
+      Route:
+        - RouteKey: ANY /
+        - RouteKey: ANY /{proxy+}
+
+Outputs:
+  ApiUrl:
+    Description: API endpoint URL
+    Value: !Sub "https://${HFMLOpsApi}.execute-api.${AWS::Region}.amazonaws.com/default/"

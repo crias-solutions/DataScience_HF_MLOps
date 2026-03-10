@@ -1,4 +1,4 @@
-.PHONY: install install-dev install-api install-app train-text train-image evaluate-text evaluate-image lint test clean
+.PHONY: install install-dev install-api install-app train-text train-image evaluate-text evaluate-image lint test clean docker-build docker-run docker-push docker-buildx help
 
 install:
 	pip install -r requirements.txt
@@ -51,6 +51,16 @@ run-image-app:
 run-api:
 	cd api && uvicorn main:app --reload
 
+docker-build:
+	docker build -t hf-mlops-api:latest .
+
+docker-run:
+	docker run -p 8080:8080 --env HF_TOKEN=$(HF_TOKEN) hf-mlops-api:latest
+
+docker-push:
+	docker tag hf-mlops-api:latest ghcr.io/crias-solutions/hf-mlops-api:latest
+	docker push ghcr.io/crias-solutions/hf-mlops-api:latest
+
 clean:
 	rm -rf __pycache__ */__pycache__ */*/__pycache__
 	rm -rf .pytest_cache
@@ -80,4 +90,7 @@ help:
 	@echo "  make run-text-app    - Run text classifier Gradio app"
 	@echo "  make run-image-app   - Run image classifier Gradio app"
 	@echo "  make run-api         - Run FastAPI server"
+	@echo "  make docker-build    - Build Docker image"
+	@echo "  make docker-run      - Run Docker container"
+	@echo "  make docker-push     - Push Docker image to registry"
 	@echo "  make clean           - Clean up generated files"

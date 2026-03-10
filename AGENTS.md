@@ -35,9 +35,17 @@ project-root/
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml              # CI: lint + tests on every push
-│       ├── cd-text.yml        # CD: train + deploy text classifier
-│       └── cd-image.yml       # CD: train + deploy image classifier
+│       ├── cd-text.yml         # CD: train + deploy text classifier
+│       ├── cd-image.yml        # CD: train + deploy image classifier
+│       └── docker.yml          # Docker build and push
 ├── .devcontainer/              # Codespaces config
+├── recipes/                    # Cloud deployment recipes
+│   ├── aws-lambda-sam/        # AWS Lambda SAM config
+│   ├── aws-cloudrun/          # AWS CloudRun deployment
+│   ├── gcp-cloudrun/         # GCP CloudRun deployment
+│   └── azure/                 # Azure Container Apps
+├── Dockerfile                  # Container image definition
+├── .dockerignore              # Docker ignore file
 ├── data/
 │   ├── text/                   # Text classification dataset
 │   │   └── sample_data.csv
@@ -296,9 +304,9 @@ Run on merge to main:
 
 ---
 
-## Next Steps (Phase 2)
+## Next Steps (Phase 2) - COMPLETED
 
-### 1. Docker Containerization
+### 1. Docker Containerization ✅
 
 Add Dockerfile for self-hosted deployment:
 
@@ -309,7 +317,7 @@ Add Dockerfile for self-hosted deployment:
   - `make docker-run`
   - `make docker-push`
 
-### 2. Enhanced Makefile Commands
+### 2. Enhanced Makefile Commands ✅
 
 Reference: [Python-MLOps-Cookbook Makefile](https://github.com/noahgift/Python-MLOps-Cookbook/blob/main/Makefile)
 
@@ -318,7 +326,7 @@ Add commands for:
 - Local API testing
 - Cloud deployment scripts
 
-### 3. Cloud Deployment Options
+### 3. Cloud Deployment Options ✅
 
 Add deployment configs for:
 
@@ -327,16 +335,23 @@ Add deployment configs for:
 - **GCP CloudRun** - Containerized deployment
 - **Azure Container Apps** - Containerized deployment
 
-### 4. GitHub Actions Enhancements
+### 4. GitHub Actions Enhancements ✅
 
-- Add container build and push workflow
-- Add AWS/GCP/Azure deployment workflows
+- Add container build and push workflow (`.github/workflows/docker.yml`)
 
 ### 5. Additional MLOps Features
 
 - **MLflow integration** - Experiment tracking
 - **Model monitoring** - Data drift detection
 - **A/B testing** - Deploy multiple model versions
+
+---
+
+## Phase 3: Future Enhancements
+
+- MLflow integration for experiment tracking
+- Model monitoring and data drift detection
+- A/B testing for model deployments
 
 ---
 
