@@ -1,121 +1,276 @@
-# py-opencode-scaffold
+# DataScience_HF_MLOps
 
-[![Open in GitHub Codespaces](https://img.shields.io/badge/Open%20in-Codespaces-2088FF?style=for-the-badge&logo=github)](https://codespaces.new/crias-solutions/py-opencode-scaffold)
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-F77F00?style=for-the-badge&logo=mozilla)](https://opensource.org/licenses/MPL-2.0)
-
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-20-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![OpenCode](https://img.shields.io/badge/OpenCode-CLI-8B5CF6?style=flat-square&logo=openai&logoColor=white)](https://opencode.ai/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97-Hugging%20Face-FFD21E?style=flat-square)](https://huggingface.co/)
+
+End-to-end Hugging Face MLOps scaffold with text and image classification pipelines, CI/CD automation, and deployment to Hugging Face Hub and Spaces.
 
 ---
 
 ## What is this?
 
-A ready-to-use Python development environment template for GitHub Codespaces with OpenCode AI assistant pre-configured. Create your own copy, launch a Codespace, and start coding with AI assistance in minutes.
+A production-ready MLOps scaffold for building, training, and deploying machine learning models using Hugging Face tools. This project provides:
+
+- **Text Classification Pipeline** - Fine-tune DistilBERT for text classification
+- **Image Classification Pipeline** - Fine-tune ResNet for image classification
+- **Full CI/CD** - Automated testing and deployment via GitHub Actions
+- **Multiple Deployment Options** - Hugging Face Hub, Spaces, and FastAPI
 
 ---
 
-## Getting Started
+## Architecture
 
-1. Click **"Use this template"** → **"Create a new repository"**
-2. Name your project and choose visibility (public/private)
-3. Click **"Create repository"**
-4. In your new repo, click the **"Open in Codespaces"** badge above
-5. Wait for the environment to build (~2 minutes)
-6. Open terminal and run:
-   ```bash
-   opencode
-   ```
-7. Start coding with AI assistance!
-
----
-
-## Configuration (Optional)
-
-### API Keys Setup
-
-OpenCode requires an API key from a supported provider.
-
-#### Option 1: Anthropic (Claude)
-
-1. Get your API key from [console.anthropic.com](https://console.anthropic.com/)
-2. In GitHub, go to **Settings** → **Codespaces** → **Secrets**
-3. Click **New secret**:
-   - Name: `ANTHROPIC_API_KEY`
-   - Value: Your API key
-4. Rebuild your Codespace
-
-#### Option 2: OpenAI (GPT)
-
-1. Get your API key from [platform.openai.com](https://platform.openai.com/)
-2. In GitHub, go to **Settings** → **Codespaces** → **Secrets**
-3. Click **New secret**:
-   - Name: `OPENAI_API_KEY`
-   - Value: Your API key
-4. Rebuild your Codespace
-
----
-
-## Usage
-
-### Launch OpenCode
-
-```bash
-opencode
 ```
-
-### Common Commands
-
-| Command | Description |
-|---------|-------------|
-| `opencode` | Launch AI assistant |
-| `/help` | Show available commands |
-| `/clear` | Clear conversation |
-| `/quit` | Exit OpenCode |
+┌─────────────────────────────────────────────────────────────────────┐
+│                    End-to-End MLOps Pipeline                         │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐        │
+│  │ Text Class   │    │ Image Class  │    │ Shared Core  │        │
+│  │ Pipeline     │    │ Pipeline     │    │ (config,     │        │
+│  │              │    │              │    │  utils)      │        │
+│  └──────────────┘    └──────────────┘    └──────────────┘        │
+│           │                  │                   │                  │
+│           ▼                  ▼                   ▼                  │
+│  ┌──────────────────────────────────────────────────────────┐      │
+│  │              GitHub Actions CI/CD                          │      │
+│  │  • CI: Ruff lint → Pytest → Model sanity tests            │      │
+│  │  CD: Train → Evaluate → Push to HF Hub → Deploy Spaces    │      │
+│  └──────────────────────────────────────────────────────────┘      │
+│                                                                      │
+│  Deployment Targets:                                                │
+│    1. Hugging Face Hub (model card + weights)                       │
+│    2. Hugging Face Spaces (Gradio demo)                            │
+│    3. FastAPI (self-hosted)                                        │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## Project Structure
 
 ```
-py-opencode-scaffold/
+DataScience_HF_MLOps/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml              # Lint + Tests on every push
+│       ├── cd-text.yml        # Train + Deploy text classifier
+│       └── cd-image.yml       # Train + Deploy image classifier
 ├── .devcontainer/
-│   └── devcontainer.json    # Codespaces configuration
-├── .gitattributes           # Git file handling rules
-├── .gitignore               # Ignored files and folders
-├── AGENTS.md                # AI context template
-├── LICENSE                  # MPL 2.0
-├── README.md                # This file
-└── requirements.txt         # Python dependencies
+├── data/
+│   ├── text/                  # Custom text dataset
+│   │   └── sample_data.csv
+│   └── image/                 # Custom image dataset
+│       └── sample_images/
+├── src/
+│   ├── config.py              # Shared configuration
+│   ├── text_classifier/      # Text classification pipeline
+│   │   ├── data.py
+│   │   ├── train.py
+│   │   ├── evaluate.py
+│   │   └── inference.py
+│   ├── image_classifier/     # Image classification pipeline
+│   │   ├── data.py
+│   │   ├── train.py
+│   │   ├── evaluate.py
+│   │   └── inference.py
+│   └── shared/                # Shared utilities
+│       ├── utils.py
+│       └── hub.py
+├── app/                       # Gradio demos
+│   ├── text_app.py
+│   └── image_app.py
+├── api/                       # FastAPI application
+│   ├── main.py
+│   ├── routes/
+│   │   ├── text.py
+│   │   └── image.py
+│   └── requirements.txt
+├── tests/                     # Test suite
+├── configs/                    # Configuration files
+├── Makefile
+├── requirements.txt
+├── pyproject.toml
+├── AGENTS.md
+├── README.md
+└── LICENSE
 ```
 
 ---
 
-## AGENTS.md Template
+## Getting Started
 
-This scaffold includes an `AGENTS.md` file—a template for providing context to OpenCode about your project. Edit it to describe your application, coding standards, and project-specific instructions.
+### Prerequisites
 
-See [AGENTS.md](AGENTS.md) for the template.
+- Python 3.12+
+- Hugging Face account
+- GitHub account
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/crias-solutions/DataScience_HF_MLOps.git
+cd DataScience_HF_MLOps
+```
+
+2. Create a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+### Hugging Face Setup
+
+1. Get your HF token from [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
+2. Set it as an environment variable:
+```bash
+export HF_TOKEN=your_token_here
+```
 
 ---
 
-## Saving Your Work
+## Usage
 
-Before deleting your Codespace, always push your changes:
+### Text Classification Pipeline
+
+#### Train
+```bash
+python -m src.text_classifier.train --data data/text/sample_data.csv
+```
+
+#### Evaluate
+```bash
+python -m src.text_classifier.evaluate --model text-classifier
+```
+
+#### Run Gradio Demo
+```bash
+python -m app.text_app
+```
+
+### Image Classification Pipeline
+
+#### Train
+```bash
+python -m src.image_classifier.train --data data/image
+```
+
+#### Evaluate
+```bash
+python -m src.image_classifier.evaluate --model image-classifier
+```
+
+#### Run Gradio Demo
+```bash
+python -m app.image_app
+```
+
+### Using Makefile
 
 ```bash
-git add .
-git commit -m "Your commit message"
-git push origin main
+make install          # Install dependencies
+make train-text       # Train text classifier
+make train-image      # Train image classifier
+make evaluate-text    # Evaluate text classifier
+make evaluate-image  # Evaluate image classifier
+make lint             # Run linter
+make test             # Run tests
 ```
 
-Your code is safely stored on GitHub. You can:
-- Clone it locally: `git clone https://github.com/YOUR-USERNAME/YOUR-REPO.git`
-- Download as ZIP from GitHub
-- Create a new Codespace anytime
+---
+
+## CI/CD Workflows
+
+### CI Pipeline (ci.yml)
+Runs on every push and PR:
+- Ruff linting
+- Type checking
+- Unit tests
+- Model sanity tests
+
+### CD Pipeline (cd-text.yml / cd-image.yml)
+Runs on merge to main:
+- Loads and preprocesses dataset
+- Fine-tunes model
+- Computes evaluation metrics
+- Generates model card
+- Pushes model to Hugging Face Hub
+- Deploys to Hugging Face Space
+
+---
+
+## Deployment
+
+### Hugging Face Hub
+
+Models are automatically pushed to HF Hub with:
+- Model weights
+- Model card (metrics, usage)
+- Evaluation results
+
+### Hugging Face Spaces
+
+Gradio demos deploy automatically to:
+- `crias-solutions/text-classifier-space`
+- `crias-solutions/image-classifier-space`
+
+### FastAPI
+
+Run locally:
+```bash
+cd api
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+---
+
+## Customization
+
+### Using Your Own Dataset
+
+**Text Classification:**
+Replace `data/text/sample_data.csv` with your own CSV:
+```csv
+text,label
+"I love this!",positive
+"This is bad",negative
+```
+
+**Image Classification:**
+Organize images in folders by class:
+```
+data/image/
+├── positive/
+│   ├── image1.jpg
+│   └── image2.jpg
+└── negative/
+    ├── image3.jpg
+    └── image4.jpg
+```
+
+### Changing Models
+
+Edit `src/text_classifier/train.py` or `src/image_classifier/train.py` to use different models:
+- Text: `bert-base-uncased`, `roberta-base`, etc.
+- Image: `vit-base-patch16-224`, `efficientnet-b0`, etc.
 
 ---
 
 ## License
 
 This project is licensed under the [Mozilla Public License 2.0](LICENSE).
+
+---
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.

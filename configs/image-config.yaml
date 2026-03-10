@@ -1,0 +1,20 @@
+model:
+  name: "microsoft/resnet-50"
+  num_labels: 2
+
+training:
+  num_epochs: 3
+  batch_size: 16
+  learning_rate: 2.0e-5
+  image_size: 224
+  seed: 42
+  weight_decay: 0.01
+  warmup_steps: 100
+
+data:
+  test_size: 0.2
+  shuffle: true
+
+output:
+  model_dir: "src/image_classifier/model"
+  logging_dir: "src/image_classifier/model/logs"

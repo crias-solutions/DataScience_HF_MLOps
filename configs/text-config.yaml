@@ -1,0 +1,20 @@
+model:
+  name: "distilbert-base-uncased"
+  num_labels: 3
+
+training:
+  num_epochs: 3
+  batch_size: 16
+  learning_rate: 2.0e-5
+  max_length: 128
+  seed: 42
+  weight_decay: 0.01
+  warmup_steps: 100
+
+data:
+  test_size: 0.2
+  shuffle: true
+
+output:
+  model_dir: "src/text_classifier/model"
+  logging_dir: "src/text_classifier/model/logs"

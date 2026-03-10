@@ -1,0 +1,174 @@
+name: CD - Image Classification
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      data_path:
+        description: 'Path to image data directory'
+        required: false
+        default: 'data/image'
+      model_name:
+        description: 'Model to fine-tune'
+        required: false
+        default: 'microsoft/resnet-50'
+      num_epochs:
+        description: 'Number of training epochs'
+        required: false
+        default: '3'
+
+env:
+  HF_TOKEN: ${{ secrets.HF_TOKEN }}
+  REPO_ID: ${{ secrets.HF_REPO_ID_IMAGE }}
+  SPACE_REPO_ID: ${{ secrets.HF_SPACE_IMAGE }}
+
+jobs:
+  train:
+    name: Train Image Classifier
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Train model
+        run: |
+          python -m src.image_classifier.train \
+            --data ${{ github.event.inputs.data_path || 'data/image' }} \
+            --model ${{ github.event.inputs.model_name || 'microsoft/resnet-50' }} \
+            --num-epochs ${{ github.event.inputs.num_epochs || 3 }} \
+            --output-dir src/image_classifier/model
+
+      - name: Evaluate model
+        run: |
+          python -m src.image_classifier.evaluate \
+            --model src/image_classifier/model \
+            --data ${{ github.event.inputs.data_path || 'data/image' }} \
+            --output outputs/image_metrics.json
+
+      - name: Upload evaluation results
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-evaluation-results
+          path: outputs/image_metrics.json
+
+  push-to-hub:
+    name: Push to Hugging Face Hub
+    needs: train
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download model
+        uses: actions/download-artifact@v4
+        with:
+          name: image-model
+          path: src/image_classifier/model
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install huggingface_hub
+
+      - name: Push model to Hub
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python -c "
+          from huggingface_hub import HfApi, create_repo
+          api = HfApi(token='${{ secrets.HF_TOKEN }}')
+          try:
+              api.upload_folder(
+                  folder_path='src/image_classifier/model',
+                  repo_id='${{ secrets.HF_REPO_ID_IMAGE }}',
+                  repo_type='model'
+              )
+              print('Model pushed to Hub successfully')
+          except Exception as e:
+              print(f'Error: {e}')
+          "
+
+      - name: Create model card
+        run: |
+          cat > src/image_classifier/model/README.md << 'EOF'
+          ---
+          license: apache-2.0
+          tags:
+          - pytorch
+          - transformers
+          - image-classification
+          - generated_from_trainer
+          ---
+
+          # Image Classification Model
+
+          Fine-tuned ResNet-50 for image classification.
+
+          ## Usage
+
+          ```python
+          from transformers import AutoModelForImageClassification, AutoImageProcessor
+          
+          model = AutoModelForImageClassification.from_pretrained("${{ secrets.HF_REPO_ID_IMAGE }}")
+          processor = AutoImageProcessor.from_pretrained("${{ secrets.HF_REPO_ID_IMAGE }}")
+          ```
+          EOF
+
+      - name: Update model card on Hub
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python -c "
+          from huggingface_hub import HfApi
+          api = HfApi(token='${{ secrets.HF_TOKEN }}')
+          api.upload_file(
+              path_or_fileobj='src/image_classifier/model/README.md',
+              path_in_repo='README.md',
+              repo_id='${{ secrets.HF_REPO_ID_IMAGE }}',
+              repo_type='model'
+          )
+          print('Model card updated')
+          "
+
+  deploy-space:
+    name: Deploy to Hugging Face Space
+    needs: push-to-hub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install huggingface_hub gradio
+
+      - name: Deploy to Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python -c "
+          from huggingface_hub import HfApi
+          api = HfApi(token='${{ secrets.HF_TOKEN }}')
+          
+          # Update Space with new app code
+          api.upload_folder(
+              folder_path='app',
+              repo_id='${{ secrets.HF_SPACE_IMAGE }}',
+              repo_type='space',
+              commit_message='Update image classifier app'
+          )
+          print('Space deployed successfully')
+          "
